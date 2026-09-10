@@ -154,4 +154,90 @@ public class ModelloTaskTest {
         Path generatedJavaFile = tempDir.resolve("com/example/test/TestClass.java");
         assertTrue(Files.exists(generatedJavaFile), "Generated Java file should exist: " + generatedJavaFile);
     }
+
+    @Test
+    public void testNullModelFile() {
+        ModelloTask task = new ModelloTask();
+        ModelloTask.ModelElement modelElement = new ModelloTask.ModelElement();
+        BuildException exception = assertThrows(BuildException.class, () -> task.addConfiguredModel(modelElement));
+        assertEquals("The 'file' attribute is required for <model>.", exception.getMessage());
+    }
+
+    @Test
+    public void testNullGoalName() {
+        ModelloTask task = new ModelloTask();
+        ModelloTask.NameElement goalElement = new ModelloTask.NameElement();
+        BuildException exception = assertThrows(BuildException.class, () -> task.addConfiguredGoal(goalElement));
+        assertEquals("The 'name' attribute is required for <goal>.", exception.getMessage());
+    }
+
+    @Test
+    public void testEmptyGoalName() {
+        ModelloTask task = new ModelloTask();
+        ModelloTask.NameElement goalElement = new ModelloTask.NameElement();
+        goalElement.setName("  ");
+        BuildException exception = assertThrows(BuildException.class, () -> task.addConfiguredGoal(goalElement));
+        assertEquals("The 'name' attribute is required for <goal>.", exception.getMessage());
+    }
+
+    @Test
+    public void testNullTemplateName() {
+        ModelloTask task = new ModelloTask();
+        ModelloTask.NameElement templateElement = new ModelloTask.NameElement();
+        BuildException exception =
+                assertThrows(BuildException.class, () -> task.addConfiguredTemplate(templateElement));
+        assertEquals("The 'name' attribute is required for <template>.", exception.getMessage());
+    }
+
+    @Test
+    public void testNullParamName() {
+        ModelloTask task = new ModelloTask();
+        ModelloTask.ParamElement paramElement = new ModelloTask.ParamElement();
+        BuildException exception = assertThrows(BuildException.class, () -> task.addConfiguredParam(paramElement));
+        assertEquals("The 'name' attribute is required for <param>.", exception.getMessage());
+    }
+
+    @Test
+    public void testOutputDirectoryCreation() throws IOException {
+        File modelFile = tempDir.resolve("test-mkdir.mdo").toFile();
+        try (FileWriter writer = new FileWriter(modelFile)) {
+            writer.write("<model xmlns=\"http://codehaus-plexus.github.io/MODELLO/2.0.0\" "
+                    + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                    + "xsi:schemaLocation=\"http://codehaus-plexus.github.io/MODELLO/2.0.0 "
+                    + "https://codehaus-plexus.github.io/modello/xsd/modello-2.0.0.xsd\">\n"
+                    + "  <id>test-model</id>\n"
+                    + "  <name>TestModel</name>\n"
+                    + "  <defaults>\n"
+                    + "    <default>\n"
+                    + "      <key>package</key>\n"
+                    + "      <value>com.example.test</value>\n"
+                    + "    </default>\n"
+                    + "  </defaults>\n"
+                    + "  <classes>\n"
+                    + "    <class rootElement=\"true\">\n"
+                    + "      <name>MkdirClass</name>\n"
+                    + "      <version>1.0.0+</version>\n"
+                    + "    </class>\n"
+                    + "  </classes>\n"
+                    + "</model>\n");
+        }
+
+        File nonExistentDir = tempDir.resolve("non-existent-sub/output").toFile();
+        assertFalse(nonExistentDir.exists());
+
+        ModelloTask task = new ModelloTask();
+        task.setVersion("1.0.0");
+        task.setOutputDirectory(nonExistentDir);
+
+        ModelloTask.ModelElement modelElement = new ModelloTask.ModelElement();
+        modelElement.setFile(modelFile);
+        task.addConfiguredModel(modelElement);
+
+        ModelloTask.NameElement goalElement = new ModelloTask.NameElement();
+        goalElement.setName("java");
+        task.addConfiguredGoal(goalElement);
+
+        task.execute();
+        assertTrue(nonExistentDir.exists());
+    }
 }

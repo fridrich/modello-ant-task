@@ -58,8 +58,9 @@ public class ModelloTask extends Task {
     private String version;
     private File velocityBasedir;
     private File outputDirectory;
-    private String packageWithVersion = "false";
+    private boolean packageWithVersion = false;
     private String javaSource = "8";
+    private String encoding = "utf-8";
 
     private List<File> models = new ArrayList<>();
     private List<String> templates = new ArrayList<>();
@@ -79,7 +80,7 @@ public class ModelloTask extends Task {
         this.outputDirectory = outputDirectory;
     }
 
-    public void setPackageWithVersion(String packageWithVersion) {
+    public void setPackageWithVersion(boolean packageWithVersion) {
         this.packageWithVersion = packageWithVersion;
     }
 
@@ -87,21 +88,37 @@ public class ModelloTask extends Task {
         this.javaSource = javaSource;
     }
 
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
+    }
+
     // Nested Elements Handlers
     public void addConfiguredModel(ModelElement m) {
+        if (m.getFile() == null) {
+            throw new BuildException("The 'file' attribute is required for <model>.");
+        }
         this.models.add(m.getFile());
     }
 
     public void addConfiguredTemplate(NameElement t) {
-        this.templates.add(t.getName());
+        if (t.getName() == null || t.getName().trim().isEmpty()) {
+            throw new BuildException("The 'name' attribute is required for <template>.");
+        }
+        this.templates.add(t.getName().trim());
     }
 
     public void addConfiguredGoal(NameElement g) {
-        this.goals.add(g.getName());
+        if (g.getName() == null || g.getName().trim().isEmpty()) {
+            throw new BuildException("The 'name' attribute is required for <goal>.");
+        }
+        this.goals.add(g.getName().trim());
     }
 
     public void addConfiguredParam(ParamElement p) {
-        this.velocityParams.put(p.getName(), p.getValue());
+        if (p.getName() == null || p.getName().trim().isEmpty()) {
+            throw new BuildException("The 'name' attribute is required for <param>.");
+        }
+        this.velocityParams.put(p.getName().trim(), p.getValue());
     }
 
     @Override
@@ -110,15 +127,19 @@ public class ModelloTask extends Task {
             throw new BuildException("version, outputDirectory, <model>, and <goal> are required.");
         }
 
+        if (!outputDirectory.exists() && !outputDirectory.mkdirs()) {
+            throw new BuildException("Failed to create output directory: " + outputDirectory.getAbsolutePath());
+        }
+
         try {
             Modello modello = new Modello();
             Map<String, Object> parameters = new HashMap<>();
 
             parameters.put(ModelloParameterConstants.OUTPUT_DIRECTORY, outputDirectory.getAbsolutePath());
             parameters.put(ModelloParameterConstants.VERSION, version);
-            parameters.put(ModelloParameterConstants.PACKAGE_WITH_VERSION, packageWithVersion);
+            parameters.put(ModelloParameterConstants.PACKAGE_WITH_VERSION, Boolean.toString(packageWithVersion));
             parameters.put(ModelloParameterConstants.OUTPUT_JAVA_SOURCE, javaSource);
-            parameters.put(ModelloParameterConstants.ENCODING, "utf-8");
+            parameters.put(ModelloParameterConstants.ENCODING, encoding);
             parameters.put(ModelloParameterConstants.DOM_AS_XPP3, "true");
 
             // Attach Velocity configs if provided

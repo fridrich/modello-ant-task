@@ -33,13 +33,14 @@ The `<modello>` task supports several attributes and nested elements to configur
 
 ### Attributes
 
-| Attribute                | Type     | Description                                                                | Required |  Default  |
-|:-------------------------|:---------|:---------------------------------------------------------------------------|:--------:|:---------:|
-| **`version`**            | `String` | The model version to generate (e.g., `1.0.0`).                             | **Yes**  |     —     |
-| **`outputDirectory`**    | `File`   | The directory where the generated files will be written.                   | **Yes**  |     —     |
-| **`javaSource`**         | `String` | Target Java version for generated source code.                             |    No    |    `8`    |
-| **`packageWithVersion`** | `String` | Whether to append the version to the package name (`"true"` / `"false"`).  |    No    | `"false"` |
-| **`velocityBasedir`**    | `File`   | Base directory of template files (required only for Velocity-based goals). |    No    |     —     |
+| Attribute                | Type      | Description                                                                | Required |  Default  |
+|:-------------------------|:----------|:---------------------------------------------------------------------------|:--------:|:---------:|
+| **`version`**            | `String`  | The model version to generate (e.g., `1.0.0`).                             | **Yes**  |     —     |
+| **`outputDirectory`**    | `File`    | The directory where the generated files will be written.                   | **Yes**  |     —     |
+| **`javaSource`**         | `String`  | Target Java version for generated source code.                             |    No    |    `8`    |
+| **`encoding`**           | `String`  | Character encoding for generated files.                                    |    No    | `"utf-8"` |
+| **`packageWithVersion`** | `boolean` | Whether to append the version to the package name (`"true"` / `"false"`).  |    No    |  `false`  |
+| **`velocityBasedir`**    | `File`    | Base directory of template files (required only for Velocity-based goals). |    No    |     —     |
 
 ### Nested Elements
 
