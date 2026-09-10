@@ -30,7 +30,7 @@ import org.codehaus.plexus.util.xml.XmlStreamReader;
 
 /*
 <taskdef name="modello"
-         classname="org.codehaus.modello.ant.ModelloTask"
+         classname="com.github.fridrich.modello.ant.ModelloTask"
          classpathref="maven.plugin.classpath" />
 
 <target name="mdo" description="Generate sources from mdo files">
@@ -131,7 +131,9 @@ public class ModelloTask extends Task {
             for (File modelFile : models) {
                 log("Generating sources for " + modelFile.getName());
                 for (String goal : goals) {
-                    modello.generate(new XmlStreamReader(modelFile), goal, parameters);
+                    try (XmlStreamReader reader = new XmlStreamReader(modelFile)) {
+                        modello.generate(reader, goal, parameters);
+                    }
                 }
             }
         } catch (Exception e) {
