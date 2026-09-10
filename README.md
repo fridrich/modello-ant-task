@@ -33,17 +33,18 @@ The `<modello>` task supports several attributes and nested elements to configur
 
 ### Attributes
 
-| Attribute | Type | Description | Required | Default |
-| :--- | :--- | :--- | :---: | :---: |
-| **`version`** | `String` | The model version to generate (e.g., `1.0.0`). | **Yes** | — |
-| **`outputDirectory`** | `File` | The directory where the generated files will be written. | **Yes** | — |
-| **`javaSource`** | `String` | Target Java version for generated source code. | No | `8` |
-| **`packageWithVersion`** | `String` | Whether to append the version to the package name (`"true"` / `"false"`). | No | `"false"` |
-| **`velocityBasedir`** | `File` | Base directory of template files (required only for Velocity-based goals). | No | — |
+| Attribute                | Type     | Description                                                                | Required |  Default  |
+|:-------------------------|:---------|:---------------------------------------------------------------------------|:--------:|:---------:|
+| **`version`**            | `String` | The model version to generate (e.g., `1.0.0`).                             | **Yes**  |     —     |
+| **`outputDirectory`**    | `File`   | The directory where the generated files will be written.                   | **Yes**  |     —     |
+| **`javaSource`**         | `String` | Target Java version for generated source code.                             |    No    |    `8`    |
+| **`packageWithVersion`** | `String` | Whether to append the version to the package name (`"true"` / `"false"`).  |    No    | `"false"` |
+| **`velocityBasedir`**    | `File`   | Base directory of template files (required only for Velocity-based goals). |    No    |     —     |
 
 ### Nested Elements
 
 #### `<model>`
+
 Specifies the Modello model description file to read. At least one `<model>` element is required.
 * **`file`** (`File`, Required): Path to the `.mdo` model file.
 
@@ -52,6 +53,7 @@ Specifies the Modello model description file to read. At least one `<model>` ele
 ```
 
 #### `<goal>`
+
 Specifies the Modello generator target to run. At least one `<goal>` element is required.
 * **`name`** (`String`, Required): The generator plugin name (e.g., `java`, `xdoc`, `xsd`, `xpp3-reader`, `xpp3-writer`, `velocity`).
 
@@ -60,6 +62,7 @@ Specifies the Modello generator target to run. At least one `<goal>` element is 
 ```
 
 #### `<template>`
+
 Specifies a custom template file when running the Velocity-based generator (`velocity` goal).
 * **`name`** (`String`, Required): Name or path of the template file relative to `velocityBasedir`.
 
@@ -68,6 +71,7 @@ Specifies a custom template file when running the Velocity-based generator (`vel
 ```
 
 #### `<param>`
+
 Specifies custom velocity parameters passed to the generator.
 * **`name`** (`String`, Required): Parameter name.
 * **`value`** (`String`, Required): Parameter value.
@@ -130,3 +134,4 @@ This example demonstrates how to use the Velocity generator plugin to create fil
     </modello>
 </target>
 ```
+

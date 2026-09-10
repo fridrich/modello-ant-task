@@ -107,34 +107,32 @@ public class ModelloTaskTest {
         // Write a minimal Modello model file
         File modelFile = tempDir.resolve("test.mdo").toFile();
         try (FileWriter writer = new FileWriter(modelFile)) {
-            writer.write(
-                "<model xmlns=\"http://codehaus-plexus.github.io/MODELLO/2.0.0\" " +
-                "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
-                "xsi:schemaLocation=\"http://codehaus-plexus.github.io/MODELLO/2.0.0 " +
-                "https://codehaus-plexus.github.io/modello/xsd/modello-2.0.0.xsd\">\n" +
-                "  <id>test-model</id>\n" +
-                "  <name>TestModel</name>\n" +
-                "  <defaults>\n" +
-                "    <default>\n" +
-                "      <key>package</key>\n" +
-                "      <value>com.example.test</value>\n" +
-                "    </default>\n" +
-                "  </defaults>\n" +
-                "  <classes>\n" +
-                "    <class rootElement=\"true\">\n" +
-                "      <name>TestClass</name>\n" +
-                "      <version>1.0.0+</version>\n" +
-                "      <fields>\n" +
-                "        <field>\n" +
-                "          <name>id</name>\n" +
-                "          <version>1.0.0+</version>\n" +
-                "          <type>String</type>\n" +
-                "        </field>\n" +
-                "      </fields>\n" +
-                "    </class>\n" +
-                "  </classes>\n" +
-                "</model>\n"
-            );
+            writer.write("<model xmlns=\"http://codehaus-plexus.github.io/MODELLO/2.0.0\" "
+                    + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                    + "xsi:schemaLocation=\"http://codehaus-plexus.github.io/MODELLO/2.0.0 "
+                    + "https://codehaus-plexus.github.io/modello/xsd/modello-2.0.0.xsd\">\n"
+                    + "  <id>test-model</id>\n"
+                    + "  <name>TestModel</name>\n"
+                    + "  <defaults>\n"
+                    + "    <default>\n"
+                    + "      <key>package</key>\n"
+                    + "      <value>com.example.test</value>\n"
+                    + "    </default>\n"
+                    + "  </defaults>\n"
+                    + "  <classes>\n"
+                    + "    <class rootElement=\"true\">\n"
+                    + "      <name>TestClass</name>\n"
+                    + "      <version>1.0.0+</version>\n"
+                    + "      <fields>\n"
+                    + "        <field>\n"
+                    + "          <name>id</name>\n"
+                    + "          <version>1.0.0+</version>\n"
+                    + "          <type>String</type>\n"
+                    + "        </field>\n"
+                    + "      </fields>\n"
+                    + "    </class>\n"
+                    + "  </classes>\n"
+                    + "</model>\n");
         }
 
         ModelloTask task = new ModelloTask();
