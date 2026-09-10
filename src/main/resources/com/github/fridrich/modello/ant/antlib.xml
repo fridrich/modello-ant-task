@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<antlib>
+  <taskdef name="modello" classname="com.github.fridrich.modello.ant.ModelloTask"/>
+  <!-- You can define multiple tasks or macros here -->
+</antlib>
