@@ -28,32 +28,6 @@ import org.codehaus.modello.Modello;
 import org.codehaus.modello.ModelloParameterConstants;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 
-/*
-<taskdef name="modello"
-         classname="com.github.fridrich.modello.ant.ModelloTask"
-         classpathref="maven.plugin.classpath" />
-
-<target name="mdo" description="Generate sources from mdo files">
-    <mkdir dir="${build.mdoOutputDir}"/>
-
-    <modello version="4.1.0"
-             outputDirectory="${build.mdoOutputDir}"
-             velocityBasedir="${project.basedir}/../../src/mdo">
-
-        <model file="src/main/mdo/maven.mdo" />
-
-        <goal name="velocity" />
-        <goal name="xdoc" />
-        <goal name="xsd" />
-
-        <template name="model.vm" />
-
-        <param name="packageModelV4" value="org.apache.maven.api.model" />
-        <param name="isMavenModel" value="true" />
-    </modello>
-</target>
-*/
-
 public class ModelloTask extends Task {
     private String version;
     private File velocityBasedir;
@@ -132,7 +106,7 @@ public class ModelloTask extends Task {
             throw new BuildException("version, outputDirectory, <model>, and <goal> are required.");
         }
 
-        if (!outputDirectory.exists() && !outputDirectory.mkdirs()) {
+        if (!outputDirectory.mkdirs() && !outputDirectory.isDirectory()) {
             throw new BuildException("Failed to create output directory: " + outputDirectory.getAbsolutePath());
         }
 
