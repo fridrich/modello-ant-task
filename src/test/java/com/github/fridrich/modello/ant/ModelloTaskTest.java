@@ -317,4 +317,65 @@ public class ModelloTaskTest {
         assertTrue(falseContent.contains("writeDom( (org.w3c.dom.Element)"));
         assertFalse(falseContent.contains("Xpp3Dom"));
     }
+
+    @Test
+    public void testPluralExceptions() throws IOException {
+        File modelFile = tempDir.resolve("test-plural.mdo").toFile();
+        try (FileWriter writer = new FileWriter(modelFile)) {
+            writer.write(
+                    "<model xmlns=\"http://codehaus-plexus.github.io/MODELLO/1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
+                            + "  xsi:schemaLocation=\"http://codehaus-plexus.github.io/MODELLO/1.0.0 https://codehaus-plexus.github.io/modello/xsd/modello-1.0.0.xsd\">\n"
+                            + "  <id>test-plural</id>\n"
+                            + "  <name>TestPlural</name>\n"
+                            + "  <defaults>\n"
+                            + "    <default>\n"
+                            + "      <key>package</key>\n"
+                            + "      <value>com.example.test</value>\n"
+                            + "    </default>\n"
+                            + "  </defaults>\n"
+                            + "  <classes>\n"
+                            + "    <class rootElement=\"true\">\n"
+                            + "      <name>Server</name>\n"
+                            + "      <version>1.0.0+</version>\n"
+                            + "      <fields>\n"
+                            + "        <field>\n"
+                            + "          <name>aliases</name>\n"
+                            + "          <version>1.0.0+</version>\n"
+                            + "          <association>\n"
+                            + "            <type>String</type>\n"
+                            + "            <multiplicity>*</multiplicity>\n"
+                            + "          </association>\n"
+                            + "        </field>\n"
+                            + "      </fields>\n"
+                            + "    </class>\n"
+                            + "  </classes>\n"
+                            + "</model>\n");
+        }
+
+        Path outDir = tempDir.resolve("plural-out");
+        ModelloTask task = new ModelloTask();
+        task.setVersion("1.0.0");
+        task.setOutputDirectory(outDir.toFile());
+
+        ModelloTask.ModelElement m = new ModelloTask.ModelElement();
+        m.setFile(modelFile);
+        task.addConfiguredModel(m);
+
+        ModelloTask.NameElement g = new ModelloTask.NameElement();
+        g.setName("java");
+        task.addConfiguredGoal(g);
+
+        ModelloTask.ParamElement pe = new ModelloTask.ParamElement();
+        pe.setName("aliases");
+        pe.setValue("alias");
+        task.addConfiguredPluralException(pe);
+
+        task.execute();
+
+        Path generatedJava = outDir.resolve("com/example/test/Server.java");
+        assertTrue(Files.exists(generatedJava));
+        String content = new String(Files.readAllBytes(generatedJava));
+        assertTrue(content.contains("addAlias("));
+        assertFalse(content.contains("addAliase"));
+    }
 }

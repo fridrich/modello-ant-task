@@ -41,6 +41,7 @@ public class ModelloTask extends Task {
     private List<String> templates = new ArrayList<>();
     private List<String> goals = new ArrayList<>();
     private Map<String, String> velocityParams = new HashMap<>();
+    private Map<String, String> pluralExceptions = new HashMap<>();
 
     // Attribute Setters
     public void setVersion(String version) {
@@ -100,6 +101,13 @@ public class ModelloTask extends Task {
         this.velocityParams.put(p.getName().trim(), p.getValue());
     }
 
+    public void addConfiguredPluralException(ParamElement p) {
+        if (p.getName() == null || p.getName().trim().isEmpty()) {
+            throw new BuildException("The 'name' attribute is required for <pluralException>.");
+        }
+        this.pluralExceptions.put(p.getName().trim(), p.getValue());
+    }
+
     @Override
     public void execute() throws BuildException {
         if (version == null || outputDirectory == null || models.isEmpty() || goals.isEmpty()) {
@@ -120,6 +128,9 @@ public class ModelloTask extends Task {
             parameters.put(ModelloParameterConstants.OUTPUT_JAVA_SOURCE, javaSource);
             parameters.put(ModelloParameterConstants.ENCODING, encoding);
             parameters.put(ModelloParameterConstants.DOM_AS_XPP3, Boolean.toString(domAsXpp3));
+            if (!pluralExceptions.isEmpty()) {
+                parameters.put(ModelloParameterConstants.PLURAL_EXCEPTIONS, pluralExceptions);
+            }
 
             // Attach Velocity configs if provided
             if (velocityBasedir != null) {
