@@ -61,6 +61,7 @@ public class ModelloTask extends Task {
     private boolean packageWithVersion = false;
     private String javaSource = "8";
     private String encoding = "utf-8";
+    private boolean domAsXpp3 = true;
 
     private List<File> models = new ArrayList<>();
     private List<String> templates = new ArrayList<>();
@@ -90,6 +91,10 @@ public class ModelloTask extends Task {
 
     public void setEncoding(String encoding) {
         this.encoding = encoding;
+    }
+
+    public void setDomAsXpp3(boolean domAsXpp3) {
+        this.domAsXpp3 = domAsXpp3;
     }
 
     // Nested Elements Handlers
@@ -140,7 +145,7 @@ public class ModelloTask extends Task {
             parameters.put(ModelloParameterConstants.PACKAGE_WITH_VERSION, Boolean.toString(packageWithVersion));
             parameters.put(ModelloParameterConstants.OUTPUT_JAVA_SOURCE, javaSource);
             parameters.put(ModelloParameterConstants.ENCODING, encoding);
-            parameters.put(ModelloParameterConstants.DOM_AS_XPP3, "true");
+            parameters.put(ModelloParameterConstants.DOM_AS_XPP3, Boolean.toString(domAsXpp3));
 
             // Attach Velocity configs if provided
             if (velocityBasedir != null) {

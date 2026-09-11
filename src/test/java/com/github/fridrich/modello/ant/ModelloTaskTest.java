@@ -240,4 +240,81 @@ public class ModelloTaskTest {
         task.execute();
         assertTrue(nonExistentDir.exists());
     }
+
+    @Test
+    public void testDomAsXpp3DefaultAndFalse() throws IOException {
+        File modelFile = tempDir.resolve("test-dom.mdo").toFile();
+        try (FileWriter writer = new FileWriter(modelFile)) {
+            writer.write("<model xmlns=\"http://codehaus-plexus.github.io/MODELLO/2.0.0\" "
+                    + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                    + "xsi:schemaLocation=\"http://codehaus-plexus.github.io/MODELLO/2.0.0 "
+                    + "https://codehaus-plexus.github.io/modello/xsd/modello-2.0.0.xsd\">\n"
+                    + "  <id>test-dom</id>\n"
+                    + "  <name>TestDom</name>\n"
+                    + "  <defaults>\n"
+                    + "    <default>\n"
+                    + "      <key>package</key>\n"
+                    + "      <value>com.example.dom</value>\n"
+                    + "    </default>\n"
+                    + "  </defaults>\n"
+                    + "  <classes>\n"
+                    + "    <class rootElement=\"true\">\n"
+                    + "      <name>DomClass</name>\n"
+                    + "      <version>1.0.0+</version>\n"
+                    + "      <fields>\n"
+                    + "        <field>\n"
+                    + "          <name>config</name>\n"
+                    + "          <version>1.0.0+</version>\n"
+                    + "          <type>DOM</type>\n"
+                    + "        </field>\n"
+                    + "      </fields>\n"
+                    + "    </class>\n"
+                    + "  </classes>\n"
+                    + "</model>\n");
+        }
+
+        Path defaultOut = tempDir.resolve("default-out");
+        ModelloTask taskDefault = new ModelloTask();
+        taskDefault.setVersion("1.0.0");
+        taskDefault.setOutputDirectory(defaultOut.toFile());
+        ModelloTask.ModelElement m1 = new ModelloTask.ModelElement();
+        m1.setFile(modelFile);
+        taskDefault.addConfiguredModel(m1);
+        ModelloTask.NameElement g1 = new ModelloTask.NameElement();
+        g1.setName("java");
+        taskDefault.addConfiguredGoal(g1);
+        ModelloTask.NameElement g1Writer = new ModelloTask.NameElement();
+        g1Writer.setName("xpp3-writer");
+        taskDefault.addConfiguredGoal(g1Writer);
+        taskDefault.execute();
+
+        Path defaultWriter = defaultOut.resolve("com/example/dom/io/xpp3/TestDomXpp3Writer.java");
+        assertTrue(Files.exists(defaultWriter));
+        String defaultContent = new String(Files.readAllBytes(defaultWriter));
+        assertTrue(defaultContent.contains("import org.codehaus.plexus.util.xml.Xpp3Dom;"));
+        assertTrue(defaultContent.contains("((Xpp3Dom) domClass.getConfig())"));
+        assertFalse(defaultContent.contains("org.w3c.dom.Element"));
+
+        Path falseOut = tempDir.resolve("false-out");
+        ModelloTask taskFalse = new ModelloTask();
+        taskFalse.setVersion("1.0.0");
+        taskFalse.setOutputDirectory(falseOut.toFile());
+        taskFalse.setDomAsXpp3(false);
+        ModelloTask.ModelElement m2 = new ModelloTask.ModelElement();
+        m2.setFile(modelFile);
+        taskFalse.addConfiguredModel(m2);
+        ModelloTask.NameElement g2 = new ModelloTask.NameElement();
+        g2.setName("java");
+        taskFalse.addConfiguredGoal(g2);
+        ModelloTask.NameElement g2Writer = new ModelloTask.NameElement();
+        g2Writer.setName("xpp3-writer");
+        taskFalse.addConfiguredGoal(g2Writer);
+        taskFalse.execute();
+
+        Path falseWriter = falseOut.resolve("com/example/dom/io/xpp3/TestDomXpp3Writer.java");
+        assertTrue(Files.exists(falseWriter));
+        String falseContent = new String(Files.readAllBytes(falseWriter));
+        assertTrue(falseContent.contains("writeDom( (org.w3c.dom.Element)"));
+        assertFalse(falseContent.contains("Xpp3Dom"));
+    }
 }
