@@ -198,6 +198,152 @@ public class ModelloTaskTest {
     }
 
     @Test
+    public void testEmptyTemplateName() {
+        ModelloTask task = new ModelloTask();
+        ModelloTask.NameElement templateElement = new ModelloTask.NameElement();
+        templateElement.setName("  ");
+        BuildException exception =
+                assertThrows(BuildException.class, () -> task.addConfiguredTemplate(templateElement));
+        assertEquals("The 'name' attribute is required for <template>.", exception.getMessage());
+    }
+
+    @Test
+    public void testEmptyParamName() {
+        ModelloTask task = new ModelloTask();
+        ModelloTask.ParamElement paramElement = new ModelloTask.ParamElement();
+        paramElement.setName("  ");
+        BuildException exception = assertThrows(BuildException.class, () -> task.addConfiguredParam(paramElement));
+        assertEquals("The 'name' attribute is required for <param>.", exception.getMessage());
+    }
+
+    @Test
+    public void testNullPluralExceptionName() {
+        ModelloTask task = new ModelloTask();
+        ModelloTask.ParamElement paramElement = new ModelloTask.ParamElement();
+        BuildException exception =
+                assertThrows(BuildException.class, () -> task.addConfiguredPluralException(paramElement));
+        assertEquals("The 'name' attribute is required for <pluralException>.", exception.getMessage());
+    }
+
+    @Test
+    public void testEmptyPluralExceptionName() {
+        ModelloTask task = new ModelloTask();
+        ModelloTask.ParamElement paramElement = new ModelloTask.ParamElement();
+        paramElement.setName("  ");
+        BuildException exception =
+                assertThrows(BuildException.class, () -> task.addConfiguredPluralException(paramElement));
+        assertEquals("The 'name' attribute is required for <pluralException>.", exception.getMessage());
+    }
+
+    @Test
+    public void testOutputDirectoryCreationFailure() throws IOException {
+        File blockingFile = tempDir.resolve("blocking-file").toFile();
+        assertTrue(blockingFile.createNewFile());
+        File outputDirectory = new File(blockingFile, "sub");
+
+        ModelloTask task = new ModelloTask();
+        task.setVersion("1.0.0");
+        task.setOutputDirectory(outputDirectory);
+
+        ModelloTask.ModelElement modelElement = new ModelloTask.ModelElement();
+        modelElement.setFile(new File("dummy.mdo"));
+        task.addConfiguredModel(modelElement);
+
+        ModelloTask.NameElement goalElement = new ModelloTask.NameElement();
+        goalElement.setName("java");
+        task.addConfiguredGoal(goalElement);
+
+        BuildException exception = assertThrows(BuildException.class, task::execute);
+        assertEquals("Failed to create output directory: " + outputDirectory.getAbsolutePath(), exception.getMessage());
+    }
+
+    @Test
+    public void testInvalidModelFileThrowsBuildException() throws IOException {
+        File modelFile = tempDir.resolve("invalid.mdo").toFile();
+        try (FileWriter writer = new FileWriter(modelFile)) {
+            writer.write("not a valid model");
+        }
+
+        ModelloTask task = new ModelloTask();
+        task.setVersion("1.0.0");
+        task.setOutputDirectory(tempDir.resolve("invalid-out").toFile());
+
+        ModelloTask.ModelElement modelElement = new ModelloTask.ModelElement();
+        modelElement.setFile(modelFile);
+        task.addConfiguredModel(modelElement);
+
+        ModelloTask.NameElement goalElement = new ModelloTask.NameElement();
+        goalElement.setName("java");
+        task.addConfiguredGoal(goalElement);
+
+        BuildException exception = assertThrows(BuildException.class, task::execute);
+        assertTrue(exception.getMessage().startsWith("Modello generation failed: "));
+    }
+
+    @Test
+    public void testVelocityGoal() throws IOException {
+        File modelFile = tempDir.resolve("test-velocity.mdo").toFile();
+        try (FileWriter writer = new FileWriter(modelFile)) {
+            writer.write("<model xmlns=\"http://codehaus-plexus.github.io/MODELLO/2.0.0\" "
+                    + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                    + "xsi:schemaLocation=\"http://codehaus-plexus.github.io/MODELLO/2.0.0 "
+                    + "https://codehaus-plexus.github.io/modello/xsd/modello-2.0.0.xsd\">\n"
+                    + "  <id>test-velocity</id>\n"
+                    + "  <name>TestVelocity</name>\n"
+                    + "  <defaults>\n"
+                    + "    <default>\n"
+                    + "      <key>package</key>\n"
+                    + "      <value>com.example.velocity</value>\n"
+                    + "    </default>\n"
+                    + "  </defaults>\n"
+                    + "  <classes>\n"
+                    + "    <class rootElement=\"true\">\n"
+                    + "      <name>VelocityClass</name>\n"
+                    + "      <version>1.0.0+</version>\n"
+                    + "    </class>\n"
+                    + "  </classes>\n"
+                    + "</model>\n");
+        }
+
+        File velocityBasedir = tempDir.resolve("templates").toFile();
+        assertTrue(velocityBasedir.mkdirs());
+        File templateFile = new File(velocityBasedir, "test.vm");
+        try (FileWriter writer = new FileWriter(templateFile)) {
+            writer.write("#MODELLO-VELOCITY#SAVE-OUTPUT-TO output.txt\nHello ${greeting}\n");
+        }
+
+        Path outDir = tempDir.resolve("velocity-out");
+        ModelloTask task = new ModelloTask();
+        task.setVersion("1.0.0");
+        task.setOutputDirectory(outDir.toFile());
+        task.setVelocityBasedir(velocityBasedir);
+
+        ModelloTask.ModelElement modelElement = new ModelloTask.ModelElement();
+        modelElement.setFile(modelFile);
+        task.addConfiguredModel(modelElement);
+
+        ModelloTask.NameElement goalElement = new ModelloTask.NameElement();
+        goalElement.setName("velocity");
+        task.addConfiguredGoal(goalElement);
+
+        ModelloTask.NameElement templateElement = new ModelloTask.NameElement();
+        templateElement.setName("test.vm");
+        task.addConfiguredTemplate(templateElement);
+
+        ModelloTask.ParamElement paramElement = new ModelloTask.ParamElement();
+        paramElement.setName("greeting");
+        paramElement.setValue("World");
+        task.addConfiguredParam(paramElement);
+
+        task.execute();
+
+        Path generatedFile = outDir.resolve("output.txt");
+        assertTrue(Files.exists(generatedFile));
+        String content = new String(Files.readAllBytes(generatedFile));
+        assertTrue(content.contains("Hello World"));
+    }
+
+    @Test
     public void testOutputDirectoryCreation() throws IOException {
         File modelFile = tempDir.resolve("test-mkdir.mdo").toFile();
         try (FileWriter writer = new FileWriter(modelFile)) {
