@@ -81,31 +81,26 @@ public class ModelloTask extends Task {
     }
 
     public void addConfiguredTemplate(NameElement t) {
-        if (t.getName() == null || t.getName().trim().isEmpty()) {
-            throw new BuildException("The 'name' attribute is required for <template>.");
-        }
-        this.templates.add(t.getName().trim());
+        this.templates.add(requireName(t.getName(), "template"));
     }
 
     public void addConfiguredGoal(NameElement g) {
-        if (g.getName() == null || g.getName().trim().isEmpty()) {
-            throw new BuildException("The 'name' attribute is required for <goal>.");
-        }
-        this.goals.add(g.getName().trim());
+        this.goals.add(requireName(g.getName(), "goal"));
     }
 
     public void addConfiguredParam(ParamElement p) {
-        if (p.getName() == null || p.getName().trim().isEmpty()) {
-            throw new BuildException("The 'name' attribute is required for <param>.");
-        }
-        this.velocityParams.put(p.getName().trim(), p.getValue());
+        this.velocityParams.put(requireName(p.getName(), "param"), p.getValue());
     }
 
     public void addConfiguredPluralException(ParamElement p) {
-        if (p.getName() == null || p.getName().trim().isEmpty()) {
-            throw new BuildException("The 'name' attribute is required for <pluralException>.");
+        this.pluralExceptions.put(requireName(p.getName(), "pluralException"), p.getValue());
+    }
+
+    private static String requireName(String name, String elementTag) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new BuildException("The 'name' attribute is required for <" + elementTag + ">.");
         }
-        this.pluralExceptions.put(p.getName().trim(), p.getValue());
+        return name.trim();
     }
 
     @Override
