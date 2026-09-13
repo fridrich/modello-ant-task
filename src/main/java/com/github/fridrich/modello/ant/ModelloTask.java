@@ -17,7 +17,10 @@
 package com.github.fridrich.modello.ant;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,12 +39,22 @@ public class ModelloTask extends Task {
     private String javaSource = "8";
     private String encoding = "utf-8";
     private boolean domAsXpp3 = true;
+    private File licenseFile;
+    private String licenseText;
+    private String extendedClassnameSuffix;
+    private String xsdFileName;
+    private Boolean enforceMandatoryElements;
+    private String jsonSchemaFileName;
+    private String firstVersion;
+    private String xdocFileName;
 
     private List<File> models = new ArrayList<>();
     private List<String> templates = new ArrayList<>();
     private List<String> goals = new ArrayList<>();
+    private List<String> packagedVersions = new ArrayList<>();
     private Map<String, String> velocityParams = new HashMap<>();
     private Map<String, String> pluralExceptions = new HashMap<>();
+    private Map<String, String> properties = new HashMap<>();
 
     // Attribute Setters
     public void setVersion(String version) {
@@ -60,6 +73,17 @@ public class ModelloTask extends Task {
         this.packageWithVersion = packageWithVersion;
     }
 
+    public void setPackagedVersions(String packagedVersions) {
+        if (packagedVersions != null) {
+            for (String v : packagedVersions.split(",")) {
+                String trimmed = v.trim();
+                if (!trimmed.isEmpty()) {
+                    this.packagedVersions.add(trimmed);
+                }
+            }
+        }
+    }
+
     public void setJavaSource(String javaSource) {
         this.javaSource = javaSource;
     }
@@ -70,6 +94,38 @@ public class ModelloTask extends Task {
 
     public void setDomAsXpp3(boolean domAsXpp3) {
         this.domAsXpp3 = domAsXpp3;
+    }
+
+    public void setLicenseFile(File licenseFile) {
+        this.licenseFile = licenseFile;
+    }
+
+    public void setLicenseText(String licenseText) {
+        this.licenseText = licenseText;
+    }
+
+    public void setExtendedClassnameSuffix(String extendedClassnameSuffix) {
+        this.extendedClassnameSuffix = extendedClassnameSuffix;
+    }
+
+    public void setXsdFileName(String xsdFileName) {
+        this.xsdFileName = xsdFileName;
+    }
+
+    public void setEnforceMandatoryElements(boolean enforceMandatoryElements) {
+        this.enforceMandatoryElements = enforceMandatoryElements;
+    }
+
+    public void setJsonSchemaFileName(String jsonSchemaFileName) {
+        this.jsonSchemaFileName = jsonSchemaFileName;
+    }
+
+    public void setFirstVersion(String firstVersion) {
+        this.firstVersion = firstVersion;
+    }
+
+    public void setXdocFileName(String xdocFileName) {
+        this.xdocFileName = xdocFileName;
     }
 
     // Nested Elements Handlers
@@ -88,12 +144,32 @@ public class ModelloTask extends Task {
         this.goals.add(requireName(g.getName(), "goal"));
     }
 
+    public void addConfiguredPackagedVersion(NameElement v) {
+        this.packagedVersions.add(requireName(v.getName(), "packagedVersion"));
+    }
+
     public void addConfiguredParam(ParamElement p) {
         this.velocityParams.put(requireName(p.getName(), "param"), p.getValue());
     }
 
     public void addConfiguredPluralException(ParamElement p) {
         this.pluralExceptions.put(requireName(p.getName(), "pluralException"), p.getValue());
+    }
+
+    public void addConfiguredProperty(ParamElement p) {
+        this.properties.put(requireName(p.getName(), "property"), p.getValue());
+    }
+
+    public void addConfiguredLicense(LicenseElement l) {
+        if (l.getFile() != null) {
+            this.licenseFile = l.getFile();
+        }
+        if (l.getText() != null) {
+            this.licenseText = l.getText();
+        }
+        if (l.getFile() == null && l.getText() == null) {
+            throw new BuildException("Either 'file' or 'text' attribute is required for <license>.");
+        }
     }
 
     private static String requireName(String name, String elementTag) {
@@ -126,6 +202,44 @@ public class ModelloTask extends Task {
             if (!pluralExceptions.isEmpty()) {
                 parameters.put(ModelloParameterConstants.PLURAL_EXCEPTIONS, pluralExceptions);
             }
+            if (!packagedVersions.isEmpty()) {
+                parameters.put(ModelloParameterConstants.ALL_VERSIONS, String.join(",", packagedVersions));
+            }
+            if (licenseText != null) {
+                parameters.put(ModelloParameterConstants.LICENSE_TEXT, Arrays.asList(licenseText.split("\\r?\\n")));
+            } else if (licenseFile != null) {
+                if (!licenseFile.exists()) {
+                    throw new BuildException("License file not found: " + licenseFile.getAbsolutePath());
+                }
+                try {
+                    parameters.put(ModelloParameterConstants.LICENSE_TEXT, Files.readAllLines(licenseFile.toPath()));
+                } catch (IOException e) {
+                    throw new BuildException("Failed to read license file: " + licenseFile.getAbsolutePath(), e);
+                }
+            }
+            if (extendedClassnameSuffix != null) {
+                parameters.put(ModelloParameterConstants.EXTENDED_CLASSNAME_SUFFIX, extendedClassnameSuffix);
+            }
+            if (xsdFileName != null) {
+                parameters.put(ModelloParameterConstants.OUTPUT_XSD_FILE_NAME, xsdFileName);
+            }
+            if (enforceMandatoryElements != null) {
+                parameters.put(
+                        ModelloParameterConstants.XSD_ENFORCE_MANDATORY_ELEMENTS,
+                        Boolean.toString(enforceMandatoryElements));
+            }
+            if (jsonSchemaFileName != null) {
+                parameters.put(ModelloParameterConstants.OUTPUT_JSONSCHEMA_FILE_NAME, jsonSchemaFileName);
+            }
+            if (firstVersion != null) {
+                parameters.put(ModelloParameterConstants.FIRST_VERSION, firstVersion);
+            }
+            if (xdocFileName != null) {
+                parameters.put(ModelloParameterConstants.OUTPUT_XDOC_FILE_NAME, xdocFileName);
+            }
+
+            // Arbitrary properties
+            parameters.putAll(properties);
 
             // Attach Velocity configs if provided
             if (velocityBasedir != null) {
@@ -142,6 +256,8 @@ public class ModelloTask extends Task {
                     }
                 }
             }
+        } catch (BuildException e) {
+            throw e;
         } catch (Exception e) {
             throw new BuildException("Modello generation failed: " + e.getMessage(), e);
         }
@@ -190,6 +306,31 @@ public class ModelloTask extends Task {
 
         public String getValue() {
             return value;
+        }
+    }
+
+    public static class LicenseElement {
+        private File file;
+        private String text;
+
+        public void setFile(File file) {
+            this.file = file;
+        }
+
+        public File getFile() {
+            return file;
+        }
+
+        public void setText(String text) {
+            this.text = text;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public void addText(String text) {
+            this.text = text;
         }
     }
 }

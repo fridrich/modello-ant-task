@@ -33,15 +33,24 @@ The `<modello>` task supports several attributes and nested elements to configur
 
 ### Attributes
 
-| Attribute                | Type      | Description                                                                           | Required |  Default  |
-|:-------------------------|:----------|:--------------------------------------------------------------------------------------|:--------:|:---------:|
-| **`version`**            | `String`  | The model version to generate (e.g., `1.0.0`).                                        | **Yes**  |     —     |
-| **`outputDirectory`**    | `File`    | The directory where the generated files will be written.                              | **Yes**  |     —     |
-| **`javaSource`**         | `String`  | Target Java version for generated source code.                                        |    No    |    `8`    |
-| **`encoding`**           | `String`  | Character encoding for generated files.                                               |    No    | `"utf-8"` |
-| **`packageWithVersion`** | `boolean` | Whether to append the version to the package name (`"true"` / `"false"`).             |    No    |  `false`  |
-| **`domAsXpp3`**          | `boolean` | Whether to generate DOM content as Xpp3Dom (`"true"`) or W3C DOM Element (`"false"`). |    No    |  `true`   |
-| **`velocityBasedir`**    | `File`    | Base directory of template files (required only for Velocity-based goals).            |    No    |     —     |
+| Attribute                      | Type      | Description                                                                           | Required |  Default  |
+|:-------------------------------|:----------|:--------------------------------------------------------------------------------------|:--------:|:---------:|
+| **`version`**                  | `String`  | The model version to generate (e.g., `1.0.0`).                                        | **Yes**  |     —     |
+| **`outputDirectory`**          | `File`    | The directory where the generated files will be written.                              | **Yes**  |     —     |
+| **`javaSource`**               | `String`  | Target Java version for generated source code.                                        |    No    |    `8`    |
+| **`encoding`**                 | `String`  | Character encoding for generated files.                                               |    No    | `"utf-8"` |
+| **`packageWithVersion`**       | `boolean` | Whether to append the version to the package name (`"true"` / `"false"`).             |    No    |  `false`  |
+| **`packagedVersions`**         | `String`  | Comma-separated list of versions to generate backward compatibility for.              |    No    |     —     |
+| **`domAsXpp3`**                | `boolean` | Whether to generate DOM content as Xpp3Dom (`"true"`) or W3C DOM Element (`"false"`). |    No    |  `true`   |
+| **`licenseFile`**              | `File`    | Path to file containing license header text to prepend to generated files.            |    No    |     —     |
+| **`licenseText`**              | `String`  | License header text to prepend to generated files.                                    |    No    |     —     |
+| **`extendedClassnameSuffix`**  | `String`  | Suffix for extended class names (e.g., `Ex`).                                         |    No    |     —     |
+| **`xsdFileName`**              | `String`  | Custom output file name for generated XSD schema (`xsd` goal).                        |    No    |     —     |
+| **`enforceMandatoryElements`** | `boolean` | Whether to enforce mandatory elements in XSD (`"true"` / `"false"`).                  |    No    |  `false`  |
+| **`jsonSchemaFileName`**       | `String`  | Custom output file name for generated JSON Schema (`jsonschema` goal).                |    No    |     —     |
+| **`firstVersion`**             | `String`  | Earliest version to document when generating documentation (`xdoc` goal).             |    No    |     —     |
+| **`xdocFileName`**             | `String`  | Custom output file name for generated XDoc documentation (`xdoc` goal).               |    No    |     —     |
+| **`velocityBasedir`**          | `File`    | Base directory of template files (required only for Velocity-based goals).            |    No    |     —     |
 
 ### Nested Elements
 
@@ -63,6 +72,36 @@ Specifies the Modello generator target to run. At least one `<goal>` element is 
 <goal name="java" />
 ```
 
+#### `<packagedVersion>`
+
+Specifies an additional model version to package. Can be specified multiple times.
+* **`name`** (`String`, Required): The version string (e.g., `1.0.0`).
+
+```xml
+<packagedVersion name="1.0.0" />
+<packagedVersion name="1.1.0" />
+```
+
+#### `<license>`
+
+Specifies license header content to prepend to generated sources.
+* **`file`** (`File`, Optional): File containing license header text.
+* **`text`** (`String`, Optional): Direct license text string (can also be passed as nested text).
+
+```xml
+<license file="${basedir}/LICENSE.txt" />
+```
+
+#### `<pluralException>`
+
+Specifies an irregular plural mapping used during field naming generation.
+* **`name`** (`String`, Required): The plural form (e.g., `aliases`).
+* **`value`** (`String`, Required): The singular form (e.g., `alias`).
+
+```xml
+<pluralException name="aliases" value="alias" />
+```
+
 #### `<template>`
 
 Specifies a custom template file when running the Velocity-based generator (`velocity` goal).
@@ -74,12 +113,22 @@ Specifies a custom template file when running the Velocity-based generator (`vel
 
 #### `<param>`
 
-Specifies custom velocity parameters passed to the generator.
+Specifies custom velocity parameters passed to the generator context.
 * **`name`** (`String`, Required): Parameter name.
 * **`value`** (`String`, Required): Parameter value.
 
 ```xml
 <param name="packageModelV4" value="org.example.model" />
+```
+
+#### `<property>`
+
+Passes arbitrary Modello parameters directly (equivalent to `-Dkey=value` on the CLI).
+* **`name`** (`String`, Required): Parameter key.
+* **`value`** (`String`, Required): Parameter value.
+
+```xml
+<property name="modello.package.with.version" value="true" />
 ```
 
 ---
