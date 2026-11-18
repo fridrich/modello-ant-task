@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.codehaus.plexus</groupId>
     <artifactId>plexus</artifactId>
-    <version>27</version>
+    <version>28</version>
   </parent>
 
   <groupId>com.github.fridrich</groupId>
