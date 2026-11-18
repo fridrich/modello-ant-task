@@ -36,7 +36,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <modello.version>2.8.1</modello.version>
+    <modello.version>2.10.0</modello.version>
     <ant.version>1.10.18</ant.version>
     <plexus.xml.version>3.1.0</plexus.xml.version>
     <junit.version>5.14.4</junit.version>
